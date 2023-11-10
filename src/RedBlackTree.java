@@ -1,4 +1,3 @@
-
 enum COLOR {RED, BLACK}
 class Node {
     Book data;
@@ -16,8 +15,8 @@ class Node {
     }
 }
 
-class NilNode extends Node {
-     NilNode() {
+class ExternalNode extends Node {
+     ExternalNode() {
          super(new Book());
          this.color = COLOR.BLACK;
     }
@@ -112,6 +111,14 @@ class RedBlackTree {
         return newNode;
     }
 
+    private void changeColor(Node node, COLOR color) {
+        if((color==COLOR.BLACK && node.color == COLOR.RED) ||
+                (color==COLOR.RED && node.color == COLOR.BLACK)){
+            noOfColorFlips++;
+        }
+        node.color = color;
+    }
+
     private void fixRedBlackPropertiesAfterInsert(Node node) {
         Node parent = node.parent;
 
@@ -123,16 +130,14 @@ class RedBlackTree {
         }
         Node grandParent = parent.parent;
         if(grandParent == null) {
-            parent.color = COLOR.BLACK;
-            noOfColorFlips++;
+            changeColor(parent,COLOR.BLACK);
             return;
         }
         Node uncle = getUncle(parent);
         if(uncle !=null && uncle.color == COLOR.RED) {
-            parent.color = COLOR.BLACK;
-            grandParent.color = COLOR.RED;
-            uncle.color = COLOR.BLACK;
-            noOfColorFlips += 3;
+            changeColor(parent,COLOR.BLACK);
+            changeColor(grandParent,COLOR.RED);
+            changeColor(uncle,COLOR.BLACK);
             fixRedBlackPropertiesAfterInsert(grandParent);
         } else if (parent == grandParent.left) {
             if(node == parent.right) {
@@ -140,18 +145,16 @@ class RedBlackTree {
                 parent = node;
             }
             rotateRight(grandParent);
-            parent.color = COLOR.BLACK;
-            grandParent.color = COLOR.RED;
-            noOfColorFlips +=2;
+            changeColor(parent,COLOR.BLACK);
+            changeColor(grandParent,COLOR.RED);
         }else {
             if(node == parent.left) {
                 rotateRight(parent);
                 parent = node;
             }
             rotateLeft(grandParent);
-            parent.color = COLOR.BLACK;
-            grandParent.color = COLOR.RED;
-            noOfColorFlips += 2;
+            changeColor(parent,COLOR.BLACK);
+            changeColor(grandParent,COLOR.RED);
         }
     }
 
@@ -213,7 +216,7 @@ class RedBlackTree {
             fixRedBlackPropertiesAfterDelete(movedUpNode);
 
             // Remove the temporary NIL node
-            if (movedUpNode.getClass() == NilNode.class) {
+            if (movedUpNode.getClass() == ExternalNode.class) {
                 replaceParentsChild(movedUpNode.parent, movedUpNode, null);
             }
         }
@@ -236,7 +239,7 @@ class RedBlackTree {
         // * node is red --> just remove it
         // * node is black --> replace it by a temporary NIL node (needed to fix the R-B rules)
         else {
-            Node newChild = node.color == COLOR.BLACK ? new NilNode() : null;
+            Node newChild = node.color == COLOR.BLACK ? new ExternalNode() : null;
             replaceParentsChild(node.parent, node, newChild);
             return newChild;
         }
@@ -267,13 +270,11 @@ class RedBlackTree {
 
         // Cases 3+4: Black sibling with two black children
         if (isBlack(sibling.left) && isBlack(sibling.right)) {
-            sibling.color = COLOR.RED;
-            noOfColorFlips++;
+            changeColor(sibling,COLOR.RED);
 
             // Case 3: Black sibling with two black children + red parent
             if (node.parent.color == COLOR.RED) {
-                node.parent.color = COLOR.BLACK;
-                noOfColorFlips++;
+                changeColor(node.parent,COLOR.BLACK);
             }
 
             // Case 4: Black sibling with two black children + black parent
@@ -305,9 +306,8 @@ class RedBlackTree {
 
     private void handleRedSibling(Node node, Node sibling) {
         // Recolor...
-        sibling.color = COLOR.BLACK;
-        node.parent.color = COLOR.RED;
-        noOfColorFlips+=2;
+        changeColor(sibling,COLOR.BLACK);
+        changeColor(node.parent,COLOR.RED);
 
         // ... and rotate
         if (node == node.parent.left) {
@@ -323,32 +323,30 @@ class RedBlackTree {
         // Case 5: Black sibling with at least one red child + "outer nephew" is black
         // --> Recolor sibling and its child, and rotate around sibling
         if (nodeIsLeftChild && isBlack(sibling.right)) {
-            sibling.left.color = COLOR.BLACK;
-            sibling.color = COLOR.RED;
+            changeColor(sibling.left,COLOR.BLACK);
+            changeColor(sibling,COLOR.RED);
             rotateRight(sibling);
             sibling = node.parent.right;
         } else if (!nodeIsLeftChild && isBlack(sibling.left)) {
-            sibling.right.color = COLOR.BLACK;
-            sibling.color = COLOR.RED;
+            changeColor(sibling.right,COLOR.BLACK);
+            changeColor(sibling,COLOR.RED);
             rotateLeft(sibling);
             sibling = node.parent.left;
         }
-        noOfColorFlips+=2;
 
         // Fall-through to case 6...
 
         // Case 6: Black sibling with at least one red child + "outer nephew" is red
         // --> Recolor sibling + parent + sibling's child, and rotate around parent
-        sibling.color = node.parent.color;
-        node.parent.color = COLOR.BLACK;
+        changeColor(sibling,node.parent.color);
+        changeColor(node.parent,COLOR.BLACK);
         if (nodeIsLeftChild) {
-            sibling.right.color = COLOR.BLACK;
+            changeColor(sibling.right,COLOR.BLACK);
             rotateLeft(node.parent);
         } else {
-            sibling.left.color = COLOR.BLACK;
+            changeColor(sibling.left,COLOR.BLACK);
             rotateRight(node.parent);
         }
-        noOfColorFlips+=2;
     }
 
 
