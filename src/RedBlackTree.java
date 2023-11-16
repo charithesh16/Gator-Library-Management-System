@@ -13,6 +13,17 @@ class Node {
         this.parent = null;
         this.color = COLOR.RED;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(" BookID: ").append(data != null ? data.getId() : -1);
+        sb.append(" Color: ").append(color);
+        sb.append(" Parent: ").append(parent!=null ? parent.data.getId() : "null");
+        sb.append(" Left: ").append(left!=null ? left.data.getId() : "null");
+        sb.append(" Right: ").append(right!=null ? right.data.getId() : "null");
+        return sb.toString();
+    }
 }
 
 class ExternalNode extends Node {
@@ -100,6 +111,7 @@ class RedBlackTree {
 
         Node newNode = new Node(data);
         if(parent==null) {
+            newNode.color = COLOR.BLACK;
             root = newNode;
         }else if(key < parent.data.getId()){
             parent.left = newNode;
@@ -112,6 +124,7 @@ class RedBlackTree {
     }
 
     private void changeColor(Node node, COLOR color) {
+        if(node.parent==null) return;
         if((color==COLOR.BLACK && node.color == COLOR.RED) ||
                 (color==COLOR.RED && node.color == COLOR.BLACK)){
             noOfColorFlips++;
@@ -202,7 +215,7 @@ class RedBlackTree {
         // Node has two children
         else {
             // Find minimum node of right subtree ("inorder successor" of current node)
-            Node inOrderSuccessor = findMinimum(node.right);
+            Node inOrderSuccessor = findMaximum(node.left);
 
             // Copy inorder successor's data to current node (keep its color!)
             node.data = inOrderSuccessor.data;
@@ -245,9 +258,9 @@ class RedBlackTree {
         }
     }
 
-    private Node findMinimum(Node node) {
-        while (node.left != null) {
-            node = node.left;
+    private Node findMaximum(Node node) {
+        while (node.right != null) {
+            node = node.right;
         }
         return node;
     }

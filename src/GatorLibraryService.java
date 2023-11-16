@@ -12,11 +12,8 @@ public class GatorLibraryService {
     GatorLibraryService(String fileName) throws IOException {
         this.redBlackTree = new RedBlackTree();
         File file = new File(fileName+"_output_file.txt");
-        if(file.createNewFile()){
-            FileWriter fileWriter = new FileWriter(file);
-            bufferedWriter = new BufferedWriter(fileWriter);
-        }
-
+        FileWriter fileWriter = new FileWriter(file,false);
+        bufferedWriter = new BufferedWriter(fileWriter);
     }
 
     public void insertBook(int id,String name,String authorName,boolean isAvailable) {
@@ -39,17 +36,31 @@ public class GatorLibraryService {
         if(node!=null) {
             writeToFile(node.data.toString()+"\n");
         }
-//        else {
-//         writeToFile("BookID not found in the Library"+"\n");
-//        }
+        else {
+         writeToFile("Book "+id +" not found in the Library"+"\n");
+        }
     }
 
 
     public void printBooks(int from, int to) {
         for(int id = from;id<=to;id++) {
-            printBook(id);
+            Node node = redBlackTree.searchNode(id);
+            if(node!=null) {
+                writeToFile(node.data.toString()+"\n");
+            }
         }
     }
+//    public void printAllBooks(){
+//        writeToFile("================================== ALL BOOKs ++++======");
+//        for(int i=0;i<1000;i++)
+//        {
+//        Node node = redBlackTree.searchNode(i);
+//        if(node!=null) {
+//            writeToFile(node.toString()+"\n");
+//            }
+//        }
+//        writeToFile("================================== END ++++======");
+//    }
 
     public void borrowBook(int patronID, int bookID, int patronPriority) {
         Node node = redBlackTree.searchNode(bookID);
@@ -97,12 +108,14 @@ public class GatorLibraryService {
     }
 
     public void printColorFlips() {
-        writeToFile("Colour Flip Count: "+redBlackTree.noOfColorFlips + "\n");
+        writeToFile("Color Flip Count: "+redBlackTree.noOfColorFlips + "\n");
     }
 
+    public void flushOutput() throws IOException{
+        bufferedWriter.flush();
+    }
     public void quit() throws IOException {
         writeToFile("Program Terminated!!");
-        bufferedWriter.flush();
     }
 
     public void findClosest(int id) {
@@ -111,8 +124,17 @@ public class GatorLibraryService {
             writeToFile(node.data.toString()+"\n");
         }else {
             Node[] ceilAndFloor = redBlackTree.findCeilAndFloor(id);
-            writeToFile(ceilAndFloor[0].data.toString()+"\n");
-            writeToFile(ceilAndFloor[1].data.toString()+"\n");
+            int diff1 = Math.abs(ceilAndFloor[0].data.getId() - id);
+            int diff2 = Math.abs(ceilAndFloor[1].data.getId() - id);
+            if(diff1==diff2) {
+                writeToFile(ceilAndFloor[0].data.toString()+"\n");
+                writeToFile(ceilAndFloor[1].data.toString()+"\n");
+            }else if(diff1 < diff2){
+                writeToFile(ceilAndFloor[0].data.toString()+"\n");
+            }else{
+                writeToFile(ceilAndFloor[1].data.toString()+"\n");
+            }
+
         }
 
     }

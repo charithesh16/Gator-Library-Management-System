@@ -94,6 +94,7 @@ public class gatorLibrary {
                 }
                 inputLine = bufferedReader.readLine();
             }
+            gatorLibraryService.flushOutput();
 
 //        }catch (Exception e) {
 //            System.out.println("Exeption occured : "+e);
