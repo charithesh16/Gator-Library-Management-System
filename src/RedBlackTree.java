@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 enum COLOR {RED, BLACK}
 class Node {
     Book data;
@@ -50,9 +53,9 @@ class RedBlackTree {
         leftChild.right = node;
         node.parent = leftChild;
 
-        replaceParentsChild(parent,node,leftChild);
+        changeParentsChild(parent,node,leftChild);
     }
-    private void replaceParentsChild(Node parent,Node oldChild,Node newChild) {
+    private void changeParentsChild(Node parent,Node oldChild,Node newChild) {
         if(parent == null) {
             root = newChild;
         } else if(parent.left == oldChild) {
@@ -76,7 +79,7 @@ class RedBlackTree {
         rightChild.left = node;
         node.parent = rightChild;
 
-        replaceParentsChild(parent,node,rightChild);
+        changeParentsChild(parent,node,rightChild);
     }
 
     public Node searchNode(int key) {
@@ -184,9 +187,7 @@ class RedBlackTree {
     public void deleteNode(int key) {
         Node node = root;
 
-        // Find the node to be deleted
         while (node != null && node.data.getId() != key) {
-            // Traverse the tree to the left or right depending on the key
             if (key < node.data.getId()) {
                 node = node.left;
             } else {
@@ -194,7 +195,6 @@ class RedBlackTree {
             }
         }
 
-        // Node not found?
         if (node == null) {
             return;
         }
@@ -214,7 +214,7 @@ class RedBlackTree {
 
         // Node has two children
         else {
-            // Find minimum node of right subtree ("inorder successor" of current node)
+            // Find maximum node of left subtree ("inorder successor" of current node)
             Node inOrderSuccessor = findMaximum(node.left);
 
             // Copy inorder successor's data to current node (keep its color!)
@@ -230,7 +230,7 @@ class RedBlackTree {
 
             // Remove the temporary NIL node
             if (movedUpNode.getClass() == ExternalNode.class) {
-                replaceParentsChild(movedUpNode.parent, movedUpNode, null);
+                changeParentsChild(movedUpNode.parent, movedUpNode, null);
             }
         }
     }
@@ -238,13 +238,13 @@ class RedBlackTree {
     private Node deleteNodeWithZeroOrOneChild(Node node) {
         // Node has ONLY a left child --> replace by its left child
         if (node.left != null) {
-            replaceParentsChild(node.parent, node, node.left);
+            changeParentsChild(node.parent, node, node.left);
             return node.left; // moved-up node
         }
 
         // Node has ONLY a right child --> replace by its right child
         else if (node.right != null) {
-            replaceParentsChild(node.parent, node, node.right);
+            changeParentsChild(node.parent, node, node.right);
             return node.right; // moved-up node
         }
 
@@ -253,7 +253,7 @@ class RedBlackTree {
         // * node is black --> replace it by a temporary NIL node (needed to fix the R-B rules)
         else {
             Node newChild = node.color == COLOR.BLACK ? new ExternalNode() : null;
-            replaceParentsChild(node.parent, node, newChild);
+            changeParentsChild(node.parent, node, newChild);
             return newChild;
         }
     }
@@ -327,6 +327,25 @@ class RedBlackTree {
             rotateLeft(node.parent);
         } else {
             rotateRight(node.parent);
+        }
+    }
+
+    public List<Node> printBooks(int from,int to){
+        List<Node> books = new ArrayList<>();
+        traverseAndCollect(root,from,to,books);
+        return books;
+    }
+    public void traverseAndCollect(Node node, int from, int to, List<Node> books){
+        if(node == null)
+            return;
+        if(node.data.getId() >= from) {
+            traverseAndCollect(node.left,from,to,books);
+        }
+        if(node.data.getId() >= from && node.data.getId() <=to){
+            books.add(node);
+        }
+        if(node.data.getId() <= to) {
+            traverseAndCollect(node.right,from,to,books);
         }
     }
 
